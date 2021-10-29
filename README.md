@@ -22,7 +22,9 @@ If that did work you should see the script in your list , enable it.<br />
 !players solo to see the name and solo rank of everyone in your lobby (after the !players newGame)<br />
 !players duo to see the name and duo rank of everyone in your lobby (after the !players newGame)<br />
 !players squad to see the name and squad rank of everyone in your lobby (after the !players newGame)<br />
-!players cunthunt to get the name of a target in your lobby (after the !players newGame)
+!players squad to see the streamer squad (after the !players newGame)<br />
+!players fullReset (streamer) to reset all the .txt<br />
+!players cunthunt to get the name of a target in your lobby (after the !players newGame)<br />
 
 Made by th_mrow (https://www.twitch.tv/th_mrow)<br />
 Do not modified and share without asking me<br />
