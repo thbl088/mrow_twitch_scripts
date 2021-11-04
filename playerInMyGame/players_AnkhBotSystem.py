@@ -1,31 +1,40 @@
-import datetime
-import sys
-import io
-import clr
 import os
 import glob
 import os.path
 from os import path
-import random
-import time
-import re
 import json
 import ast
-
+import clr
 clr.AddReference("IronPython.SQLite.dll")
 clr.AddReference("IronPython.Modules.dll")
 
+# App datas, don't forgot to follow me ;)
 ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.5.1"
+Version = "1.6.0"
 
+# Parameters
 m_CommandPermission = "moderator"
 m_LogFileFolderPath = r'%LOCALAPPDATA%\g3\Saved\Logs'
 m_FileType = '\*log'
 m_LookFor = "blob data for"
 m_LookForStreamerTeam = "PublicBlobData"
+m_LookForNewGame = "InteractiveManager /Game/Maps/Longshot/Alpha/Alpha_Resculpt OnMatchStarted"
+
+# All the file use to save data
+file_LatestLogPath = "LatestLogPath.txt"
+file_PreviousTotalPlayers = "PreviousTotalPlayers.txt"
+file_TotalPlayers = "TotalPlayers.txt"
+file_Players = "Players.txt"
+file_PlayersData = "PlayersData.txt"
+file_StreamerTeamNumber = "StreamerTeamNumber.txt"
+file_PlayersName = "PlayersName.txt"
+file_StreamerTeamDatas = "StreamerTeamDatas.txt"
+file_StreamerStats = "StreamerStats.txt"
+file_PlayersInfo = "PlayersXp.txt"
+file_NbMatches = "NbMatches.txt"
 
 #return the path of the lastest log file create
 def LastestFile():
@@ -33,93 +42,32 @@ def LastestFile():
     max_file = max(files, key=os.path.getctime)
     return max_file
 
-def WriteLastestFile(file):
-    latestFile = os.path.join(os.path.dirname(__file__), "LatestLogPath.txt")
-    latestFileWrite = open(latestFile, "w")
-    latestFileWrite.write('%s' % str(file))
-    latestFileWrite.close()
+# Write file ("file.txt") with message
+def WriteFile(file, message):
+    writeFile = os.path.join(os.path.dirname(__file__), file)
+    writeFileWrite = open(writeFile, "w")
+    writeFileWrite.write('%s' % str(message))
+    writeFileWrite.close()
     return
 
-def GetLastestFile():
-    latestFile = os.path.join(os.path.dirname(__file__), "LatestLogPath.txt")
-    latestFileRead = open(latestFile, "r")
-    latestFile_str = latestFileRead.readline()
-    latestFileRead.close()
-    return latestFile_str
+# Read file and return the lecture in type
+def ReadFile(file, type):
+    readFile = os.path.join(os.path.dirname(__file__), file)
+    readFileRead = open(readFile, "r")
+    if type == "int":
+        read = readFileRead.readline()
+        read = int(float(read))
+    elif type == "string":
+        read = readFileRead.readline()
+    elif type == "list":
+        read = readFileRead.readlines()
+    else:
+        read = ""
+        Parent.Log(ScriptName, "ReadFile : Wrong type, available types are int, string, list." )
+    readFileRead.close()
+    return read
 
-def ReadOldPlayers():
-    oldPlayers = os.path.join(os.path.dirname(__file__), "PreviousTotalPlayers.txt")
-    oldPlayersRead = open(oldPlayers, "r")
-    oldPlayers_str = oldPlayersRead.readline()
-    oldPlayersRead.close()
-    return int(float(oldPlayers_str))
-
-def ResetOldPlayers():
-    oldPlayers = os.path.join(os.path.dirname(__file__), "PreviousTotalPlayers.txt")
-    oldPlayersWrite = open(oldPlayers, "w")
-    oldPlayersWrite.write('%s' % str(0))
-    oldPlayersWrite.close()
-    return
-
-def ChangeOldPlayers(newPlayers):
-    oldPlayers = os.path.join(os.path.dirname(__file__), "PreviousTotalPlayers.txt")
-    oldPlayersWrite = open(oldPlayers, "w")
-    oldPlayersWrite.write('%s' % str(newPlayers))
-    oldPlayersWrite.close()
-    return
-
-def AddOldPlayers(newPlayers):
-    formerOldPlayers = ReadOldPlayers()
-    totalOldPlayers = formerOldPlayers + newPlayers
-    oldPlayers = os.path.join(os.path.dirname(__file__), "PreviousTotalPlayers.txt")
-    oldPlayersWrite = open(oldPlayers, "w")
-    oldPlayersWrite.write('%s' % str(totalOldPlayers))
-    oldPlayersWrite.close()
-    return
-
-def ReadPlayers():
-    players = os.path.join(os.path.dirname(__file__), "TotalPlayers.txt")
-    playersRead = open(players, "r")
-    players_str = playersRead.readline()
-    playersRead.close()
-    return int(float(players_str))
-
-def ResetPlayers():
-    players = os.path.join(os.path.dirname(__file__), "TotalPlayers.txt")
-    playersWrite = open(players, "w")
-    resetVal = ReadOldPlayers()
-    playersWrite.write('%s' % str(resetVal))
-    playersWrite.close()
-    return
-
-def ChangePlayers(newPlayers):
-    players = os.path.join(os.path.dirname(__file__), "TotalPlayers.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(newPlayers))
-    playersWrite.close()
-    return
-
-def ReadSavePlayers():
-    players = os.path.join(os.path.dirname(__file__), "Players.txt")
-    playersRead = open(players, "r")
-    players_str = playersRead.readline()
-    playersRead.close()
-    return int(float(players_str))
-
-def ResetSavePlayers():
-    players = os.path.join(os.path.dirname(__file__), "Players.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(0))
-    playersWrite.close()
-    return
-
-def ChangeSavePlayers(newPlayers):
-    players = os.path.join(os.path.dirname(__file__), "Players.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(newPlayers))
-    playersWrite.close()
-    return
-
+# Read the more recent logfile and return the amount of new players with m_LookFor because that variable is there only for new players
 def GetLogPLayers(logPath):
     playersRead = open(logPath, "r")
     players_str = playersRead.read()
@@ -127,28 +75,16 @@ def GetLogPLayers(logPath):
     playersRead.close()
     return amount
 
+# If we have more players now than before then new lobby with "total players now in the log" - "previous amount of players in the log"
 def StartPlayers():
-    totalOldPlayers = ReadOldPlayers()
-    totalPlayers = ReadPlayers()
+    totalOldPlayers = ReadFile(file_PreviousTotalPlayers, "int")
+    totalPlayers = ReadFile(file_TotalPlayers, "int")
     players = totalPlayers - totalOldPlayers
     if players != 0:
-        ChangeSavePlayers(players)
+        WriteFile(file_Players, players)
     return players
 
-def WritePlayerData(data):
-    players = os.path.join(os.path.dirname(__file__), "PlayersData.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(data))
-    playersWrite.close()
-    return
-
-def ResetPlayerData():
-    players = os.path.join(os.path.dirname(__file__), "PlayersData.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(""))
-    playersWrite.close()
-    return
-
+# We read players data and convert it to a valid list.
 def ReadPlayerData():
     players = os.path.join(os.path.dirname(__file__), "PlayersData.txt")
     playersRead = open(players, "r")
@@ -157,27 +93,6 @@ def ReadPlayerData():
     players_list = ast.literal_eval(players_str)
     return players_list
 
-def WriteStreamerTeamNumb(data):
-    players = os.path.join(os.path.dirname(__file__), "StreamerTeamNumber.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(data))
-    playersWrite.close()
-    return
-
-def ResetStreamerTeamNumb():
-    players = os.path.join(os.path.dirname(__file__), "StreamerTeamNumber.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(0))
-    playersWrite.close()
-    return
-
-def ReadStreamerTeamNumb():
-    oldPlayers = os.path.join(os.path.dirname(__file__), "StreamerTeamNumber.txt")
-    oldPlayersRead = open(oldPlayers, "r")
-    oldPlayers_str = oldPlayersRead.readline()
-    oldPlayersRead.close()
-    return int(float(oldPlayers_str))
-
 def WritePlayerName(data):
     players = os.path.join(os.path.dirname(__file__), "PlayersName.txt")
     playersWrite = open(players, "a")
@@ -185,40 +100,12 @@ def WritePlayerName(data):
     playersWrite.close()
     return
 
-def ResetPlayerName():
-    players = os.path.join(os.path.dirname(__file__), "PlayersName.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(""))
-    playersWrite.close()
-    return
-
-def ReadPlayerName():
-    players = os.path.join(os.path.dirname(__file__), "PlayersName.txt")
-    playersRead = open(players, "r")
-    players_list = playersRead.readlines()
-    playersRead.close()
-    return players_list
-
 def WriteStreamerTeamData(data):
     players = os.path.join(os.path.dirname(__file__), "StreamerTeamDatas.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
-
-def ResetStreamerTeamData():
-    players = os.path.join(os.path.dirname(__file__), "StreamerTeamDatas.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(""))
-    playersWrite.close()
-    return
-
-def ReadStreamerTeamData():
-    players = os.path.join(os.path.dirname(__file__), "StreamerTeamDatas.txt")
-    playersRead = open(players, "r")
-    players_list = playersRead.readlines()
-    playersRead.close()
-    return players_list
 
 def ChangeStats(data):
     players = os.path.join(os.path.dirname(__file__), "StreamerStats.txt")
@@ -234,20 +121,6 @@ def WriteStats(data):
     playersWrite.close()
     return
 
-def ResetStats():
-    players = os.path.join(os.path.dirname(__file__), "StreamerStats.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(""))
-    playersWrite.close()
-    return
-
-def ReadStats():
-    players = os.path.join(os.path.dirname(__file__), "StreamerStats.txt")
-    playersRead = open(players, "r")
-    players_list = playersRead.readlines()
-    playersRead.close()
-    return players_list
-
 def WritePlayerXp(data):
     players = os.path.join(os.path.dirname(__file__), "PlayersXp.txt")
     playersWrite = open(players, "a")
@@ -255,24 +128,13 @@ def WritePlayerXp(data):
     playersWrite.close()
     return
 
-def ResetPlayerXp():
-    players = os.path.join(os.path.dirname(__file__), "PlayersXp.txt")
-    playersWrite = open(players, "w")
-    playersWrite.write('%s' % str(""))
-    playersWrite.close()
-    return
-
-def ReadPlayerXp():
-    players = os.path.join(os.path.dirname(__file__), "PlayersXp.txt")
-    playersRead = open(players, "r")
-    players_list = playersRead.readlines()
-    playersRead.close()
-    return players_list
-
+# We convert a line containing a Json to a Json
 def ConvertToJson(line):
     lineJson = json.loads(line)
     return lineJson
 
+# We get the Json part of the line containing a new players by cutting the end and the beginning
+# Yes that's ugly af, but that's working.
 def GetJsonLine(line):
     excla = line.count("!")
     separate = line.split("!", excla)
@@ -281,6 +143,7 @@ def GetJsonLine(line):
     answer2 = separate2[5]
     return answer2
 
+# We get the Json part of the line containing a new teammate, yes the name is explicit :)
 def GetJsonLine2(line):
     separate = line.split("!", 1)
     answer = separate[0]
@@ -289,6 +152,7 @@ def GetJsonLine2(line):
     answer2 = answer2[:-2]
     return answer2
 
+# We read the log file, and collect all the new player line, convert it to a Json then write it in the playersData file in a List
 def FoundPlayersInfo(logPath):
     list = []
     logRead = open(logPath, "r")
@@ -296,23 +160,29 @@ def FoundPlayersInfo(logPath):
     logRead.close()
     for line in log_list:
         if line.count(m_LookFor) !=0 :
-            json = GetJsonLine(line)
-            list.append(json)
-    WritePlayerData(list)
+            excl = line.count("!")
+            dot = line.count(":")
+            if excl == 1:
+                json = GetJsonLine(line)
+                list.append(json)
+    WriteFile(file_PlayersData, list)
     return
 
+# We read the playerData file, and convert all the line(of the list) to a Json then write all the name.
+# We can access the element of a Json like with a Hash map (["Key"])
 def WrotePlayersName():
-    ResetPlayerName()
+    WriteFile(file_PlayersName, "")
     list = ReadPlayerData()
-    nbPlayers = ReadSavePlayers()
+    nbPlayers = ReadFile(file_Players, "int")
     for i in range(len(list)-nbPlayers, len(list)):
         lineJson = ConvertToJson(list[i])
         WritePlayerName(lineJson['DisplayName'])
     return
 
+# We read the last nbplayers (amount of players in your game) of the list, and if the name correspond we read the info corresponding
 def GetPlayersInfo(name, info):
     list = ReadPlayerData()
-    nbPlayers = ReadSavePlayers()
+    nbPlayers = ReadFile(file_Players, "int")
     for i in range(len(list)-nbPlayers, len(list)):
         lineJson = ConvertToJson(list[i])
         if lineJson['DisplayName'] == name:
@@ -320,11 +190,11 @@ def GetPlayersInfo(name, info):
             return
     return
 
-
+# We read the last nbplayers of the list, and add their name + totalxp in a list.
 def WrotePlayersXP():
-    ResetPlayerXp()
+    WriteFile(file_PlayersInfo, "")
     list = ReadPlayerData()
-    nbPlayers = ReadSavePlayers()
+    nbPlayers = ReadFile(file_Players, "int")
     #if nbPlayers == len(list):
     #    nbPlayers = 0
     for i in range(len(list)-nbPlayers, len(list)):
@@ -335,10 +205,11 @@ def WrotePlayersXP():
         WritePlayerXp(infoList)
     return
 
+# We read the last nbplayers of the list, and add their name + wanted rank (solo, duo, squad) in a list. Nobody cares about dominion.
 def WrotePlayersRank(rank):
-    ResetPlayerXp()
+    WriteFile(file_PlayersInfo, "")
     list = ReadPlayerData()
-    nbPlayers = ReadSavePlayers()
+    nbPlayers = ReadFile(file_Players, "int")
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
@@ -350,12 +221,28 @@ def WrotePlayersRank(rank):
         WritePlayerXp(infoList)
     return
 
+# We read the last nbplayers of the list, and add their name + class xp in a list. But doesn't display his class because that would be cheating.
+def WrotePlayersClassXp(xp):
+    WriteFile(file_PlayersInfo, "")
+    list = ReadPlayerData()
+    nbPlayers = ReadFile(file_Players, "int")
+    for i in range(len(list)-nbPlayers, len(list)):
+        infoList = []
+        lineJson = ConvertToJson(list[i])
+        infoList.append(lineJson['DisplayName'])
+        playerRank = lineJson[xp]
+        infoList.append(playerRank)
+        WritePlayerXp(infoList)
+    return
+
+# Return the name of a random player in the lobby
 def GetTarget(playerList):
     targetNumber = Parent.GetRandom(0,len(playerList))
     return playerList[targetNumber]
 
+# Get the data of the streamer team. And do some "complex" shit.
 def GetStreamerTeamData(logPath):
-    ResetStreamerTeamData()
+    WriteFile(file_StreamerTeamDatas, "")
     list = []
     logRead = open(logPath, "r")
     log_list = logRead.readlines()
@@ -364,16 +251,33 @@ def GetStreamerTeamData(logPath):
         if line.count(m_LookForStreamerTeam) != 0:
             json = GetJsonLine2(line)
             list.append(json)
-    nbTeamStrea = ReadStreamerTeamNumb()
+    nbTeamStrea = ReadFile(file_StreamerTeamNumber, "int")
     fromNb = nbTeamStrea
     if fromNb == len(list) :
         fromNb = 0
     for i in range (fromNb, len(list)):
         lineJson = ConvertToJson(list[i])
         WriteStreamerTeamData(str(lineJson['DisplayName']))
-    WriteStreamerTeamNumb(len(list))
+    WriteFile(file_StreamerTeamNumber, len(list))
     return
 
+# Check if we have a new match.
+def IsNewMatch(logPath):
+    amountMatches_old = ReadFile(file_NbMatches, "int")
+    logRead = open(logPath, "r")
+    log_list = logRead.readlines()
+    logRead.close()
+    count = 0
+    for line in log_list:
+        if line.count(m_LookForNewGame) !=0: count+=1
+    if count > amountMatches_old:
+        Parent.Log(ScriptName, "New Match")
+        WriteFile(file_NbMatches, amountMatches_old+1)
+        Parent.SendTwitchMessage("New match")
+        NewGame()
+
+
+# Check if the players is in the streamerStat. And either complete it depending of his team, or create a new row. Also do some "complex" shit
 def IsInStat(playerName, stats, mate):
     toChange = True
     toWrite = False
@@ -387,7 +291,7 @@ def IsInStat(playerName, stats, mate):
                 updateStat = r'{"UserName" : "' + playerName + r'", "Enemy" :' + str(player['Enemy']+1) + r', "Ally" :' + str(player['Ally']) + r'}.'
             stats[i] = updateStat
             toChange = False
-            ResetStats()
+            WriteFile(file_StreamerStats, "")
             for stat in stats:
                 ChangeStats(stat[:-1])
         else:
@@ -402,22 +306,24 @@ def IsInStat(playerName, stats, mate):
     #WriteStats(toWrite)
     return
 
+# Add a player to the streamer stat
 def AddStats(playerName, mate):
-    stats = ReadStats()
+    stats = ReadFile(file_StreamerStats, "list")
     if len(stats) == 0 :
-        newStat = r'{"UserName" : "' + playerName + r'", "Enemy" :'+ str(1-mate) + r', "Ally" :' +  str(mate) + r'}'#.format(playerName)#.format(playerName[:-1])
+        newStat = r'{"UserName" : "' + playerName + r'", "Enemy" :'+ str(1-mate) + r', "Ally" :' +  str(mate) + r'}'# 1-mate useless but cool
         #stats.append(newStat)
         ChangeStats(newStat)
     else:
         IsInStat(playerName,stats, mate)
     return
 
+# Bla bla bla do everything for the streamer stat
 def DoStats():
     path = LastestFile()
     FoundPlayersInfo(path)
     WrotePlayersName()
-    playerList = ReadPlayerName()
-    teamMates1 = ReadStreamerTeamData()
+    playerList = ReadFile(file_PlayersName, "list")
+    teamMates1 = ReadFile(file_StreamerTeamDatas, "list")
     teamMates = []
     for mate in teamMates1:
         new_mate = mate[:-1]
@@ -426,16 +332,34 @@ def DoStats():
     for player in playerList:
         player = player[:-1]
         if player in teamMates:
-            Parent.Log(ScriptName, "Ally : " + str(player))
+            #Parent.Log(ScriptName, "Ally : " + str(player))
             AddStats(player, 1)
         else :
-            Parent.Log(ScriptName, "Enemy : " + str(player))
+            #Parent.Log(ScriptName, "Enemy : " + str(player))
             AddStats(player, 0)
     return
 
+def NewGame():
+    path = LastestFile()
+    totPlayers = GetLogPLayers(path)
+    WriteFile(file_TotalPlayers, totPlayers)
+    players = StartPlayers()
+    if players != 0:
+        answer = "There is " + str(players) + " players, including your team."
+        WriteFile(file_PreviousTotalPlayers, totPlayers)
+        GetStreamerTeamData(path)
+        Parent.SendTwitchMessage(answer)
+        DoStats()
+        WriteFile(file_PlayersData, "")
+    else:
+        Parent.SendTwitchMessage("You are still in the same match")
+    return
+
+# Useless for now
 def Init():
     return
 
+# Main function
 def Execute(data):
     if data.IsChatMessage():
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
@@ -447,14 +371,14 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersName()
-                list = ReadPlayerName()
+                list = ReadFile(file_PlayersName, "list")
                 target = GetTarget(list)
                 message = "You must hunt " + str(target)
                 Parent.SendTwitchMessage(message)
                 return
 
             if data.GetParam(1).lower() == "protectcunt" or data.GetParam(1).lower() == "protect":
-                list = ReadStreamerTeamData()
+                list = ReadFile(file_StreamerTeamDatas, "list")
                 target = GetTarget(list)
                 message = "You must protect " + str(target)
                 Parent.SendTwitchMessage(message)
@@ -463,7 +387,7 @@ def Execute(data):
         if data.GetParam(0) == "!players":
 
             if (data.GetParamCount() == 1):
-                players = ReadSavePlayers()
+                players = ReadFile(file_Players, "int")
                 answer = "There is " + str(players) + " players, including the streamer team."
                 Parent.SendTwitchMessage(answer)
                 return
@@ -471,49 +395,39 @@ def Execute(data):
             #Check if there is a new log and reset old players if yes
             if data.GetParam(1) == "init" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
                 lastest = LastestFile()
-                lastestMemory = GetLastestFile()
+                lastestMemory = ReadFile(file_LatestLogPath, "string")
                 if (lastest != lastestMemory):
-                    WriteLastestFile(lastest)
-                    ResetOldPlayers()
+                    WriteFile(file_LatestLogPath,lastest)
+                    WriteFile(file_PreviousTotalPlayers, "0")
+                    WriteFile(file_NbMatches, 0)
                     Parent.SendTwitchMessage("Old players reset")
-                ResetSavePlayers()
-                ResetPlayers()
+                WriteFile(file_Players, "0")
+                resetVal = ReadFile(file_PreviousTotalPlayers, "int")
+                WriteFile(file_TotalPlayers, resetVal)
                 Parent.SendTwitchMessage("Init done")
                 return
 
             if data.GetParam(1) == "update" and Parent.HasPermission(data.User, m_CommandPermission,"Get the amount of player in your lobby"):
                 path = LastestFile()
                 totPlayers = GetLogPLayers(path)
-                ChangePlayers(totPlayers)
-                players = StartPlayers() + ReadSavePlayers()
+                WriteFile(file_TotalPlayers, totPlayers)
+                players = StartPlayers() + ReadFile(file_Players, "int")
                 answer = "There is " + str(players) + " players, including your team."
-                ChangeSavePlayers(players)
-                ChangeOldPlayers(totPlayers)
+                WriteFile(file_Players, players)
+                WriteFile(file_PreviousTotalPlayers, totPlayers)
                 Parent.SendTwitchMessage(answer)
                 return
 
             if (data.GetParam(1) == "newGame" or data.GetParam(1) == "ng") and Parent.HasPermission(data.User, m_CommandPermission,"Reset players and old players"):
-                path = LastestFile()
-                totPlayers = GetLogPLayers(path)
-                ChangePlayers(totPlayers)
-                players = StartPlayers()
-                if players != 0:
-                    answer = "There is " + str(players) + " players, including your team."
-                    ChangeOldPlayers(totPlayers)
-                    GetStreamerTeamData(path)
-                    Parent.SendTwitchMessage(answer)
-                    DoStats()
-                    ResetPlayerData()
-                else:
-                    Parent.SendTwitchMessage("You are still in the same match")
-                return
+                NewGame()
 
             if data.GetParam(1) == "reset" and Parent.HasPermission(data.User, m_CommandPermission,"Reset players and old players"):
-                ResetPlayers()
-                ResetOldPlayers()
-                ResetSavePlayers()
-                ResetPlayerData()
-                ResetPlayerName()
+                resetVal = ReadFile(file_PreviousTotalPlayers, "int")
+                WriteFile(file_TotalPlayers, resetVal)
+                WriteFile(file_PreviousTotalPlayers, "0")
+                WriteFile(file_Players, "0")
+                WriteFile(file_PlayersData, "")
+                WriteFile(file_PlayersName, "")
                 Parent.SendTwitchMessage("reset done")
                 return
 
@@ -521,7 +435,7 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersXP()
-                list = ReadPlayerXp()
+                list = ReadFile(file_PlayersInfo, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
@@ -529,7 +443,7 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersRank("GameModeInfo:DA_BattleRoyale_Solo")
-                list = ReadPlayerXp()
+                list = ReadFile(file_PlayersInfo, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
@@ -537,7 +451,7 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersRank("GameModeInfo:DA_BattleRoyale_Duo")
-                list = ReadPlayerXp()
+                list = ReadFile(file_PlayersInfo, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
@@ -545,7 +459,15 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersRank("GameModeInfo:DA_BattleRoyale_Squad")
-                list = ReadPlayerXp()
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "class":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersClassXp("CharacterClassXP")
+                list = ReadFile(file_PlayersInfo, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
@@ -553,12 +475,12 @@ def Execute(data):
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersName()
-                list = ReadPlayerName()
+                list = ReadFile(file_PlayersName, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
             if data.GetParam(1) == "team":
-                list = ReadStreamerTeamData()
+                list = ReadFile(file_StreamerTeamDatas, "list")
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
@@ -569,30 +491,29 @@ def Execute(data):
                 return
 
             if data.GetParam(1) == "resetstat" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
-                ResetStats()
+                WriteFile(file_StreamerStats, "")
                 Parent.SendTwitchMessage("reset stat done")
                 return
 
             if data.GetParam(1) == "fullReset" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
-                ResetPlayers()
-                ResetStreamerTeamData()
-                ResetPlayerData()
-                ResetPlayerName()
-                ResetPlayerXp()
-                ResetSavePlayers()
-                ResetOldPlayers()
-                ResetStreamerTeamNumb()
-                ResetStreamerTeamData()
-                ResetStreamerTeamNumb()
+                resetVal = ReadFile(file_PreviousTotalPlayers, "int")
+                WriteFile(file_TotalPlayers, resetVal)
+
+                WriteFile(file_StreamerTeamDatas, "")
+                WriteFile(file_PlayersData, "")
+                WriteFile(file_PlayersName, "")
+                WriteFile(file_PlayersInfo, "")
+                WriteFile(file_Players, "0")
+                WriteFile(file_PreviousTotalPlayers, "0")
+                WriteFile(file_StreamerTeamNumber, "0")
+                WriteFile(file_StreamerTeamDatas, "")
                 Parent.SendTwitchMessage("Full reset done")
                 return
-
-
-
-
         return
     return
 
-
+# Auto-check if we are in a new game
 def Tick():
+    path = LastestFile()
+    IsNewMatch(path)
     return
