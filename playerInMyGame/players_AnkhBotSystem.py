@@ -1,4 +1,3 @@
-import clr
 import os
 import glob
 import os.path
@@ -6,18 +5,21 @@ from os import path
 import json
 import ast
 
+# App datas, don't forgot to follow me ;)
 ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.5.5"
+Version = "1.5.6"
 
+# Parameters
 m_CommandPermission = "moderator"
 m_LogFileFolderPath = r'%LOCALAPPDATA%\g3\Saved\Logs'
 m_FileType = '\*log'
 m_LookFor = "blob data for"
 m_LookForStreamerTeam = "PublicBlobData"
 
+# All the file use to save data
 file_LatestLogPath = "LatestLogPath.txt"
 file_PreviousTotalPlayers = "PreviousTotalPlayers.txt"
 file_TotalPlayers = "TotalPlayers.txt"
@@ -60,6 +62,7 @@ def ReadFile(file, type):
     readFileRead.close()
     return read
 
+# Read the more recent logfile and return the amount of new players with m_LookFor because that variable is there only for new players
 def GetLogPLayers(logPath):
     playersRead = open(logPath, "r")
     players_str = playersRead.read()
@@ -67,6 +70,7 @@ def GetLogPLayers(logPath):
     playersRead.close()
     return amount
 
+# If we have more players now than before then new lobby with "total players now in the log" - "previous amount of players in the log"
 def StartPlayers():
     totalOldPlayers = ReadFile(file_PreviousTotalPlayers, "int")
     totalPlayers = ReadFile(file_TotalPlayers, "int")
@@ -75,6 +79,7 @@ def StartPlayers():
         WriteFile(file_Players, players)
     return players
 
+# We read players data and convert it to a valid list.
 def ReadPlayerData():
     players = os.path.join(os.path.dirname(__file__), "PlayersData.txt")
     playersRead = open(players, "r")
@@ -118,10 +123,13 @@ def WritePlayerXp(data):
     playersWrite.close()
     return
 
+# We convert a line containing a Json to a Json
 def ConvertToJson(line):
     lineJson = json.loads(line)
     return lineJson
 
+# We get the Json part of the line containing a new players by cutting the end and the beginning
+# Yes that's ugly af, but that's working.
 def GetJsonLine(line):
     excla = line.count("!")
     separate = line.split("!", excla)
@@ -130,6 +138,7 @@ def GetJsonLine(line):
     answer2 = separate2[5]
     return answer2
 
+# We get the Json part of the line containing a new teammate, yes the name is explicit :)
 def GetJsonLine2(line):
     separate = line.split("!", 1)
     answer = separate[0]
@@ -138,6 +147,7 @@ def GetJsonLine2(line):
     answer2 = answer2[:-2]
     return answer2
 
+# We read the log file, and collect all the new player line, convert it to a Json then write it in the playersData file in a List
 def FoundPlayersInfo(logPath):
     list = []
     logRead = open(logPath, "r")
@@ -150,6 +160,8 @@ def FoundPlayersInfo(logPath):
     WriteFile(file_PlayersData, list)
     return
 
+# We read the playerData file, and convert all the line(of the list) to a Json then write all the name.
+# We can access the element of a Json like with a Hash map (["Key"])
 def WrotePlayersName():
     WriteFile(file_PlayersName, "")
     list = ReadPlayerData()
@@ -159,6 +171,7 @@ def WrotePlayersName():
         WritePlayerName(lineJson['DisplayName'])
     return
 
+# We read the last nbplayers (amount of players in your game) of the list, and if the name correspond we read the info corresponding
 def GetPlayersInfo(name, info):
     list = ReadPlayerData()
     nbPlayers = ReadFile(file_Players, "int")
@@ -169,6 +182,7 @@ def GetPlayersInfo(name, info):
             return
     return
 
+# We read the last nbplayers of the list, and add their name + totalxp in a list.
 def WrotePlayersXP():
     WriteFile(file_PlayersInfo, "")
     list = ReadPlayerData()
@@ -183,6 +197,7 @@ def WrotePlayersXP():
         WritePlayerXp(infoList)
     return
 
+# We read the last nbplayers of the list, and add their name + wanted rank (solo, duo, squad) in a list. Nobody cares about dominion.
 def WrotePlayersRank(rank):
     WriteFile(file_PlayersInfo, "")
     list = ReadPlayerData()
@@ -198,6 +213,7 @@ def WrotePlayersRank(rank):
         WritePlayerXp(infoList)
     return
 
+# We read the last nbplayers of the list, and add their name + class xp in a list. But doesn't display his class because that would be cheating.
 def WrotePlayersClassXp(xp):
     WriteFile(file_PlayersInfo, "")
     list = ReadPlayerData()
@@ -211,10 +227,12 @@ def WrotePlayersClassXp(xp):
         WritePlayerXp(infoList)
     return
 
+# Return the name of a random player in the lobby
 def GetTarget(playerList):
     targetNumber = Parent.GetRandom(0,len(playerList))
     return playerList[targetNumber]
 
+# Get the data of the streamer team. And do some "complex" shit.
 def GetStreamerTeamData(logPath):
     WriteFile(file_StreamerTeamDatas, "")
     list = []
@@ -235,6 +253,7 @@ def GetStreamerTeamData(logPath):
     WriteFile(file_StreamerTeamNumber, len(list))
     return
 
+# Check if the players is in the streamerStat. And either complete it depending of his team, or create a new row. Also do some "complex" shit
 def IsInStat(playerName, stats, mate):
     toChange = True
     toWrite = False
@@ -263,16 +282,18 @@ def IsInStat(playerName, stats, mate):
     #WriteStats(toWrite)
     return
 
+# Add a player to the streamer stat
 def AddStats(playerName, mate):
     stats = ReadFile(file_StreamerStats, "list")
     if len(stats) == 0 :
-        newStat = r'{"UserName" : "' + playerName + r'", "Enemy" :'+ str(1-mate) + r', "Ally" :' +  str(mate) + r'}'#.format(playerName)#.format(playerName[:-1])
+        newStat = r'{"UserName" : "' + playerName + r'", "Enemy" :'+ str(1-mate) + r', "Ally" :' +  str(mate) + r'}'# 1-mate useless but cool
         #stats.append(newStat)
         ChangeStats(newStat)
     else:
         IsInStat(playerName,stats, mate)
     return
 
+# Bla bla bla do everything for the streamer stat
 def DoStats():
     path = LastestFile()
     FoundPlayersInfo(path)
@@ -294,9 +315,11 @@ def DoStats():
             AddStats(player, 0)
     return
 
+# Useless for now
 def Init():
     return
 
+# Main function
 def Execute(data):
     if data.IsChatMessage():
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
@@ -462,5 +485,6 @@ def Execute(data):
         return
     return
 
+# May become useful later for checking alone if there is a new match.
 def Tick():
     return
