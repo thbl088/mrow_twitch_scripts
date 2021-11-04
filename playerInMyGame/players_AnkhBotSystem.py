@@ -4,13 +4,16 @@ import os.path
 from os import path
 import json
 import ast
+import clr
+clr.AddReference("IronPython.SQLite.dll")
+clr.AddReference("IronPython.Modules.dll")
 
 # App datas, don't forgot to follow me ;)
 ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.5.6"
+Version = "1.6.0"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -18,6 +21,7 @@ m_LogFileFolderPath = r'%LOCALAPPDATA%\g3\Saved\Logs'
 m_FileType = '\*log'
 m_LookFor = "blob data for"
 m_LookForStreamerTeam = "PublicBlobData"
+m_LookForNewGame = "InteractiveManager /Game/Maps/Longshot/Alpha/Alpha_Resculpt OnMatchStarted"
 
 # All the file use to save data
 file_LatestLogPath = "LatestLogPath.txt"
@@ -30,6 +34,7 @@ file_PlayersName = "PlayersName.txt"
 file_StreamerTeamDatas = "StreamerTeamDatas.txt"
 file_StreamerStats = "StreamerStats.txt"
 file_PlayersInfo = "PlayersXp.txt"
+file_NbMatches = "NbMatches.txt"
 
 #return the path of the lastest log file create
 def LastestFile():
@@ -155,8 +160,11 @@ def FoundPlayersInfo(logPath):
     logRead.close()
     for line in log_list:
         if line.count(m_LookFor) !=0 :
-            json = GetJsonLine(line)
-            list.append(json)
+            excl = line.count("!")
+            dot = line.count(":")
+            if excl == 1:
+                json = GetJsonLine(line)
+                list.append(json)
     WriteFile(file_PlayersData, list)
     return
 
@@ -253,6 +261,22 @@ def GetStreamerTeamData(logPath):
     WriteFile(file_StreamerTeamNumber, len(list))
     return
 
+# Check if we have a new match.
+def IsNewMatch(logPath):
+    amountMatches_old = ReadFile(file_NbMatches, "int")
+    logRead = open(logPath, "r")
+    log_list = logRead.readlines()
+    logRead.close()
+    count = 0
+    for line in log_list:
+        if line.count(m_LookForNewGame) !=0: count+=1
+    if count > amountMatches_old:
+        Parent.Log(ScriptName, "New Match")
+        WriteFile(file_NbMatches, amountMatches_old+1)
+        Parent.SendTwitchMessage("New match")
+        NewGame()
+
+
 # Check if the players is in the streamerStat. And either complete it depending of his team, or create a new row. Also do some "complex" shit
 def IsInStat(playerName, stats, mate):
     toChange = True
@@ -308,11 +332,27 @@ def DoStats():
     for player in playerList:
         player = player[:-1]
         if player in teamMates:
-            Parent.Log(ScriptName, "Ally : " + str(player))
+            #Parent.Log(ScriptName, "Ally : " + str(player))
             AddStats(player, 1)
         else :
-            Parent.Log(ScriptName, "Enemy : " + str(player))
+            #Parent.Log(ScriptName, "Enemy : " + str(player))
             AddStats(player, 0)
+    return
+
+def NewGame():
+    path = LastestFile()
+    totPlayers = GetLogPLayers(path)
+    WriteFile(file_TotalPlayers, totPlayers)
+    players = StartPlayers()
+    if players != 0:
+        answer = "There is " + str(players) + " players, including your team."
+        WriteFile(file_PreviousTotalPlayers, totPlayers)
+        GetStreamerTeamData(path)
+        Parent.SendTwitchMessage(answer)
+        DoStats()
+        WriteFile(file_PlayersData, "")
+    else:
+        Parent.SendTwitchMessage("You are still in the same match")
     return
 
 # Useless for now
@@ -359,6 +399,7 @@ def Execute(data):
                 if (lastest != lastestMemory):
                     WriteFile(file_LatestLogPath,lastest)
                     WriteFile(file_PreviousTotalPlayers, "0")
+                    WriteFile(file_NbMatches, 0)
                     Parent.SendTwitchMessage("Old players reset")
                 WriteFile(file_Players, "0")
                 resetVal = ReadFile(file_PreviousTotalPlayers, "int")
@@ -378,20 +419,7 @@ def Execute(data):
                 return
 
             if (data.GetParam(1) == "newGame" or data.GetParam(1) == "ng") and Parent.HasPermission(data.User, m_CommandPermission,"Reset players and old players"):
-                path = LastestFile()
-                totPlayers = GetLogPLayers(path)
-                WriteFile(file_TotalPlayers, totPlayers)
-                players = StartPlayers()
-                if players != 0:
-                    answer = "There is " + str(players) + " players, including your team."
-                    WriteFile(file_PreviousTotalPlayers, totPlayers)
-                    GetStreamerTeamData(path)
-                    Parent.SendTwitchMessage(answer)
-                    DoStats()
-                    WriteFile(file_PlayersData, "")
-                else:
-                    Parent.SendTwitchMessage("You are still in the same match")
-                return
+                NewGame()
 
             if data.GetParam(1) == "reset" and Parent.HasPermission(data.User, m_CommandPermission,"Reset players and old players"):
                 resetVal = ReadFile(file_PreviousTotalPlayers, "int")
@@ -481,10 +509,11 @@ def Execute(data):
                 WriteFile(file_StreamerTeamDatas, "")
                 Parent.SendTwitchMessage("Full reset done")
                 return
-
         return
     return
 
-# May become useful later for checking alone if there is a new match.
+# Auto-check if we are in a new game
 def Tick():
+    path = LastestFile()
+    IsNewMatch(path)
     return
