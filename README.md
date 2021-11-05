@@ -1,3 +1,4 @@
+# **Only available for pc.**
 # Installation manual
 
 Create a twitch account for the bot<br />
