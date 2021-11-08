@@ -35,6 +35,7 @@ file_StreamerTeamDatas = "StreamerTeamDatas.txt"
 file_StreamerStats = "StreamerStats.txt"
 file_PlayersInfo = "PlayersXp.txt"
 file_NbMatches = "NbMatches.txt"
+file_HasSound = "HasSound.txt"
 
 #return the path of the lastest log file create
 def LastestFile():
@@ -274,6 +275,8 @@ def IsNewMatch(logPath):
         Parent.Log(ScriptName, "New Match")
         WriteFile(file_NbMatches, amountMatches_old+1)
         Parent.SendTwitchMessage("New match")
+        if hasSound == "True":
+            sound_miaou = Parent.PlaySound("miaou.mp3", 1.0)
         NewGame()
 
 
@@ -355,6 +358,12 @@ def NewGame():
         Parent.SendTwitchMessage("You are still in the same match")
     return
 
+def turnOnMatchAlert(state):
+    if state:
+        WriteFile(file_HasSound, "True")
+    else:
+        WriteFile(file_HasSound, "False")
+
 # Useless for now
 def Init():
     return
@@ -362,6 +371,15 @@ def Init():
 # Main function
 def Execute(data):
     if data.IsChatMessage():
+        if data.GetParam(0) == "!sound":
+            # Sounds alert
+            if data.GetParam(1) == "off":
+                turnOnMatchAlert(False)
+            if data.GetParam(1) == "on":
+                turnOnMatchAlert(True)
+                sound_miaou = Parent.PlaySound("miaou.mp3", 0.5)
+            return
+
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
             if data.GetParamCount() == 1 and data.GetParam(0) == "!cunt":
                 Parent.SendTwitchMessage(data.UserName + " is a cunt!")
@@ -385,7 +403,6 @@ def Execute(data):
                 return
 
         if data.GetParam(0) == "!players":
-
             if (data.GetParamCount() == 1):
                 players = ReadFile(file_Players, "int")
                 answer = "There is " + str(players) + " players, including the streamer team."
