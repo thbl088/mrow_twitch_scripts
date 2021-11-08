@@ -32,9 +32,10 @@ If the bot didn't wrote `"New game"` at the drop (after the selecting a spawn sc
 `!players squad` to see the name and squad rank of everyone in your lobby.<br />
 `!players team` to print all the name of the streamer team.<br />
 
-# How to use the `!sound` command<br />
+# How to use the `!sound` command (Modo or above) <br />
 `!sound off` to turn off all the sound of the script
 `!sound on` to turn on all the sound of the script
+`!sound (value < 3)` to change the volume of all the sound (Tip : try with low value first (ex : 0.8))
 
 # How to use the `!play` command<br />
 `!play hunt` to get the name of a target in your lobby (after the !players newGame)<br />
