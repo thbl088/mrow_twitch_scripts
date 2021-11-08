@@ -13,7 +13,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.0"
+Version = "1.6.2"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -36,6 +36,7 @@ file_StreamerStats = "StreamerStats.txt"
 file_PlayersInfo = "PlayersXp.txt"
 file_NbMatches = "NbMatches.txt"
 file_HasSound = "HasSound.txt"
+file_Volume = "Volume.txt"
 
 #return the path of the lastest log file create
 def LastestFile():
@@ -58,6 +59,9 @@ def ReadFile(file, type):
     if type == "int":
         read = readFileRead.readline()
         read = int(float(read))
+    elif type == "float":
+        read = readFileRead.readline()
+        read = float(read)
     elif type == "string":
         read = readFileRead.readline()
     elif type == "list":
@@ -276,7 +280,8 @@ def IsNewMatch(logPath):
         WriteFile(file_NbMatches, amountMatches_old+1)
         Parent.SendTwitchMessage("New match")
         if hasSound == "True":
-            sound_miaou = Parent.PlaySound("miaou.mp3", 1.0)
+            volume = ReadFile(file_Volume, "float")
+            sound_miaou = Parent.PlaySound("miaou.mp3", volume)
         NewGame()
 
 
@@ -363,6 +368,12 @@ def turnOnMatchAlert(state):
         WriteFile(file_HasSound, "True")
     else:
         WriteFile(file_HasSound, "False")
+    return
+
+def changeVolume(volume):
+    WriteFile(file_Volume, volume)
+    sound_miaou = Parent.PlaySound("miaou.mp3", float(volume))
+    return
 
 # Useless for now
 def Init():
@@ -371,13 +382,19 @@ def Init():
 # Main function
 def Execute(data):
     if data.IsChatMessage():
-        if data.GetParam(0) == "!sound":
+        if data.GetParam(0) == "!sound" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
             # Sounds alert
+
             if data.GetParam(1) == "off":
                 turnOnMatchAlert(False)
             if data.GetParam(1) == "on":
                 turnOnMatchAlert(True)
-                sound_miaou = Parent.PlaySound("miaou.mp3", 0.5)
+                volume = ReadFile(file_Volume, "float")
+                sound_miaou = Parent.PlaySound("miaou.mp3", volume)
+            else:
+                newVolume = float(data.GetParam(1))
+                if isinstance(newVolume, float) and newVolume < 5.0:
+                    changeVolume(data.GetParam(1))
             return
 
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
@@ -414,7 +431,7 @@ def Execute(data):
                 lastest = LastestFile()
                 lastestMemory = ReadFile(file_LatestLogPath, "string")
                 if (lastest != lastestMemory):
-                    WriteFile(file_LatestLogPath,lastest)
+                    WriteFile(file_LatestLogPath, lastest)
                     WriteFile(file_PreviousTotalPlayers, "0")
                     WriteFile(file_NbMatches, 0)
                     Parent.SendTwitchMessage("Old players reset")
