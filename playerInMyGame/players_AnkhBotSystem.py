@@ -54,6 +54,7 @@ def LastestFile():
 # Write file ("file.txt") with message
 def WriteFile(file, message):
     writeFile = os.path.join(os.path.dirname(__file__), file)
+    Parent.Log("WriteFile", str(writeFile ))
     writeFileWrite = open(writeFile, "w")
     writeFileWrite.write('%s' % str(message))
     writeFileWrite.close()
@@ -62,6 +63,7 @@ def WriteFile(file, message):
 # Read file and return the lecture in type
 def ReadFile(file, type):
     readFile = os.path.join(os.path.dirname(__file__), file)
+    Parent.Log(ScriptName, str(readFile))
     readFileRead = open(readFile, "r")
     if type == "int":
         read = readFileRead.readline()
@@ -98,7 +100,7 @@ def StartPlayers():
 
 # We read players data and convert it to a valid list.
 def ReadPlayerData():
-    players = os.path.join(os.path.dirname(__file__), "PlayersData.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersData.txt")
     playersRead = open(players, "r")
     players_str = playersRead.read()
     playersRead.close()
@@ -106,35 +108,35 @@ def ReadPlayerData():
     return players_list
 
 def WritePlayerName(data):
-    players = os.path.join(os.path.dirname(__file__), "PlayersName.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersName.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WriteStreamerTeamData(data):
-    players = os.path.join(os.path.dirname(__file__), "StreamerTeamDatas.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerTeamDatas.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def ChangeStats(data):
-    players = os.path.join(os.path.dirname(__file__), "StreamerStats.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerStats.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WriteStats(data):
-    players = os.path.join(os.path.dirname(__file__), "StreamerStats.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerStats.txt")
     playersWrite = open(players, "w")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WritePlayerXp(data):
-    players = os.path.join(os.path.dirname(__file__), "PlayersXp.txt")
+    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersXp.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
