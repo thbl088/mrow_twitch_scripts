@@ -13,7 +13,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.2"
+Version = "1.6.3.5"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -37,6 +37,13 @@ file_PlayersInfo = "PlayersXp.txt"
 file_NbMatches = "NbMatches.txt"
 file_HasSound = "HasSound.txt"
 file_Volume = "Volume.txt"
+
+sound_miaou = "miaou.mp3"
+
+
+def GetSoundPath(soundName):
+    soundPath = os.path.join(os.path.dirname(__file__) + "\\sound\\", soundName)
+    return soundPath
 
 #return the path of the lastest log file create
 def LastestFile():
@@ -281,7 +288,8 @@ def IsNewMatch(logPath):
         Parent.SendTwitchMessage("New match")
         if hasSound == "True":
             volume = ReadFile(file_Volume, "float")
-            sound_miaou = Parent.PlaySound("miaou.mp3", volume)
+            soundPath = GetSoundPath(sound_miaou)
+            miaou = Parent.PlaySound(soundPath, volume)
         NewGame()
 
 
@@ -372,7 +380,8 @@ def turnOnMatchAlert(state):
 
 def changeVolume(volume):
     WriteFile(file_Volume, volume)
-    sound_miaou = Parent.PlaySound("miaou.mp3", float(volume))
+    soundPath = GetSoundPath(sound_miaou)
+    miaou = Parent.PlaySound(soundPath, float(volume))
     return
 
 # Useless for now
@@ -382,15 +391,14 @@ def Init():
 # Main function
 def Execute(data):
     if data.IsChatMessage():
-        if data.GetParam(0) == "!sound" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
-            # Sounds alert
-
+        if data.GetParam(0) == "!sound" and Parent.HasPermission(data.User, m_CommandPermission,"Change sound"):
             if data.GetParam(1) == "off":
                 turnOnMatchAlert(False)
             if data.GetParam(1) == "on":
                 turnOnMatchAlert(True)
                 volume = ReadFile(file_Volume, "float")
-                sound_miaou = Parent.PlaySound("miaou.mp3", volume)
+                soundPath = GetSoundPath(sound_miaou)
+                miaou = Parent.PlaySound(soundPath, volume)
             else:
                 newVolume = float(data.GetParam(1))
                 if isinstance(newVolume, float) and newVolume < 5.0:
