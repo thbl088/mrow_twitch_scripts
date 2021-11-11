@@ -13,7 +13,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.3.5"
+Version = "1.6.4"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -386,8 +386,22 @@ def changeVolume(volume):
     miaou = Parent.PlaySound(soundPath, float(volume))
     return
 
+def InitGame():
+    lastest = LastestFile()
+    lastestMemory = ReadFile(file_LatestLogPath, "string")
+    if (lastest != lastestMemory):
+        WriteFile(file_LatestLogPath, lastest)
+        WriteFile(file_PreviousTotalPlayers, "0")
+        WriteFile(file_NbMatches, 0)
+        Parent.SendTwitchMessage("Hello world")
+    WriteFile(file_Players, "0")
+    resetVal = ReadFile(file_PreviousTotalPlayers, "int")
+    WriteFile(file_TotalPlayers, resetVal)
+    return
+
 # Useless for now
 def Init():
+    InitGame()
     return
 
 # Main function
@@ -438,18 +452,7 @@ def Execute(data):
 
             #Check if there is a new log and reset old players if yes
             if data.GetParam(1) == "init" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
-                lastest = LastestFile()
-                lastestMemory = ReadFile(file_LatestLogPath, "string")
-                if (lastest != lastestMemory):
-                    WriteFile(file_LatestLogPath, lastest)
-                    WriteFile(file_PreviousTotalPlayers, "0")
-                    WriteFile(file_NbMatches, 0)
-                    Parent.SendTwitchMessage("Old players reset")
-                WriteFile(file_Players, "0")
-                resetVal = ReadFile(file_PreviousTotalPlayers, "int")
-                WriteFile(file_TotalPlayers, resetVal)
-                Parent.SendTwitchMessage("Init done")
-                return
+                InitGame()
 
             if data.GetParam(1) == "update" and Parent.HasPermission(data.User, m_CommandPermission,"Get the amount of player in your lobby"):
                 path = LastestFile()
