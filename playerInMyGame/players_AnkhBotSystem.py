@@ -100,7 +100,7 @@ def StartPlayers():
 
 # We read players data and convert it to a valid list.
 def ReadPlayerData():
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersData.txt")
+    players = os.path.join(os.path.dirname(__file__) , "PlayersData.txt")
     playersRead = open(players, "r")
     players_str = playersRead.read()
     playersRead.close()
@@ -108,35 +108,35 @@ def ReadPlayerData():
     return players_list
 
 def WritePlayerName(data):
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersName.txt")
+    players = os.path.join(os.path.dirname(__file__) , "PlayersName.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WriteStreamerTeamData(data):
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerTeamDatas.txt")
+    players = os.path.join(os.path.dirname(__file__) , "StreamerTeamDatas.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def ChangeStats(data):
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerStats.txt")
+    players = os.path.join(os.path.dirname(__file__) , "StreamerStats.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WriteStats(data):
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "StreamerStats.txt")
+    players = os.path.join(os.path.dirname(__file__) , "StreamerStats.txt")
     playersWrite = open(players, "w")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
     return
 
 def WritePlayerXp(data):
-    players = os.path.join(os.path.dirname(__file__) + "\\data\\", "PlayersXp.txt")
+    players = os.path.join(os.path.dirname(__file__) , "PlayersXp.txt")
     playersWrite = open(players, "a")
     playersWrite.write('%s' % str(data) + "\n")
     playersWrite.close()
