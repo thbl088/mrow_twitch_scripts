@@ -10,6 +10,7 @@ Click on the `setting icon in the scripts tab`, ->` pick folder` and navigate to
 Then `import the .zip` of my folder with the script tab. (Import at the top right)<br />
 If that did work you should see the script in your list , enable it.<br />
  
+If you need help you can ask on my [discord](https://discord.gg/NCHEraagAB), or watch the [tutorial video](https://youtu.be/YoXAVS30B8Q) I made
 
 # How to use the `!players` command<br />
 
