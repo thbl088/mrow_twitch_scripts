@@ -235,6 +235,22 @@ def WrotePlayersRank(rank):
         WritePlayerXp(infoList)
     return
 
+
+def WrotePlayersSkin(rank):
+    WriteFile(file_PlayersInfo, "")
+    list = ReadPlayerData()
+    nbPlayers = ReadFile(file_Players, "int")
+    for i in range(len(list)-nbPlayers, len(list)):
+        infoList = []
+        lineJson = ConvertToJson(list[i])
+        infoList.append(lineJson['DisplayName'])
+        playerRank = lineJson['CosmeticLoadout'][rank]
+        l = playerRank.split("_", 3)
+        trueRank = l[3]
+        infoList.append(trueRank)
+        WritePlayerXp(infoList)
+    return
+
 # We read the last nbplayers of the list, and add their name + class xp in a list. But doesn't display his class because that would be cheating.
 def WrotePlayersClassXp(xp):
     WriteFile(file_PlayersInfo, "")
@@ -245,6 +261,20 @@ def WrotePlayersClassXp(xp):
         lineJson = ConvertToJson(list[i])
         infoList.append(lineJson['DisplayName'])
         playerRank = lineJson[xp]
+        infoList.append(playerRank)
+        WritePlayerXp(infoList)
+    return
+# We read the last nbplayers of the list, and add their name + platform
+def WrotePlayersClassPlateform(xp):
+    WriteFile(file_PlayersInfo, "")
+    list = ReadPlayerData()
+    nbPlayers = ReadFile(file_Players, "int")
+    for i in range(len(list)-nbPlayers, len(list)):
+        infoList = []
+        lineJson = ConvertToJson(list[i])
+        infoList.append(lineJson['DisplayName'])
+        playerRank = lineJson[xp].split(":", 1)
+        playerRank = playerRank[0].replace("\\", "")
         infoList.append(playerRank)
         WritePlayerXp(infoList)
     return
@@ -288,7 +318,7 @@ def IsNewMatch(logPath):
         Parent.Log(ScriptName, "New Match")
         WriteFile(file_NbMatches, amountMatches_old+1)
         Parent.SendTwitchMessage("New match")
-        if hasSound == "True":
+        if ReadFile(file_HasSound, "string") == "True":
             volume = ReadFile(file_Volume, "float")
             soundPath = GetSoundPath(sound_miaou)
             miaou = Parent.PlaySound(soundPath, volume)
@@ -510,6 +540,27 @@ def Execute(data):
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
+            if data.GetParam(1) == "skin":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("SkinId")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "platform":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersClassPlateform("CurrentAccount")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "triumph":
+                path = LastestFile()
+                Parent.SendTwitchMessage("Imagine having another triumph emote.")
+                return
+
             if data.GetParam(1) == "class":
                 path = LastestFile()
                 FoundPlayersInfo(path)
@@ -540,6 +591,14 @@ def Execute(data):
             if data.GetParam(1) == "resetstat" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
                 WriteFile(file_StreamerStats, "")
                 Parent.SendTwitchMessage("reset stat done")
+                return
+
+            if data.GetParam(1) == "discord":
+                Parent.SendTwitchMessage("There is the invitation to join the discord of my script : https://discord.gg/NCHEraagAB")
+                return
+
+            if data.GetParam(1) == "how":
+                Parent.SendTwitchMessage("That script is only available on pc. I'm reading the log file to see all the players who logs in the lobby.")
                 return
 
             if data.GetParam(1) == "fullReset" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
