@@ -13,7 +13,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.4"
+Version = "1.6.6"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -39,6 +39,7 @@ file_HasSound = "HasSound.txt"
 file_Volume = "Volume.txt"
 
 sound_miaou = "miaou.mp3"
+sound_StillAlive = "Still_Alive.mp3"
 
 
 def GetSoundPath(soundName):
@@ -438,6 +439,8 @@ def Init():
 def Execute(data):
     if data.IsChatMessage():
         if data.GetParam(0) == "!sound" and Parent.HasPermission(data.User, m_CommandPermission,"Change sound"):
+            if data.GetParamCount() == 1:
+                Parent.SendTwitchMessage("!sound + number below 1, for example !sound 0.1")
             if data.GetParam(1) == "off":
                 turnOnMatchAlert(False)
             if data.GetParam(1) == "on":
@@ -451,12 +454,20 @@ def Execute(data):
                     changeVolume(data.GetParam(1))
             return
 
+        if data.GetParam(0) == "!th_mrow" and (Parent.HasPermission(data.User, m_CommandPermission,"easter egg") or data.UserName == "th_mrow"):
+                Parent.SendTwitchMessage("This was a triumph. I'm making a note here: HUGE SUCCESS. It's hard to overstate my satisfaction.")
+                if ReadFile(file_HasSound, "string") == "True":
+                    volume = ReadFile(file_Volume, "float")
+                    soundPath = GetSoundPath(sound_StillAlive)
+                    stillAlive = Parent.PlaySound(soundPath, volume)
+                return
+
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
             if data.GetParamCount() == 1 and data.GetParam(0) == "!cunt":
                 Parent.SendTwitchMessage(data.UserName + " is a cunt!")
                 return
 
-            if data.GetParam(1) == "cunthunt" or data.GetParam(1) == "hunt" :
+            if data.GetParam(1) == "cunthunt" or data.GetParam(1) == "hunt":
                 path = LastestFile()
                 FoundPlayersInfo(path)
                 WrotePlayersName()
@@ -548,6 +559,54 @@ def Execute(data):
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
+            if data.GetParam(1) == "artifact":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("ArtifactId")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "cloudburst":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("DropTrailID")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "afterglow":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("RunTrailID")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "badge":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("BadgeId")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "title":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("TitleId")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
+            if data.GetParam(1) == "card":
+                path = LastestFile()
+                FoundPlayersInfo(path)
+                WrotePlayersSkin("CardId")
+                list = ReadFile(file_PlayersInfo, "list")
+                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                return
+
             if data.GetParam(1) == "platform":
                 path = LastestFile()
                 FoundPlayersInfo(path)
@@ -588,13 +647,13 @@ def Execute(data):
                 DoStats()
                 return
 
-            if data.GetParam(1) == "resetstat" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
+            if data.GetParam(1) == "resetstat" and Parent.HasPermission(data.User, "broadcaster", "Reset players and old players"):
                 WriteFile(file_StreamerStats, "")
                 Parent.SendTwitchMessage("reset stat done")
                 return
 
             if data.GetParam(1) == "discord":
-                Parent.SendTwitchMessage("There is the invitation to join the discord of my script : https://discord.gg/NCHEraagAB")
+                Parent.SendTwitchMessage("There is the invitation to join the discord of mrow's script : https://discord.gg/NCHEraagAB")
                 return
 
             if data.GetParam(1) == "how":
