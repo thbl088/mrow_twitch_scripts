@@ -13,7 +13,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.5"
+Version = "1.6.6.1"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -39,7 +39,6 @@ file_HasSound = "HasSound.txt"
 file_Volume = "Volume.txt"
 
 sound_miaou = "miaou.mp3"
-sound_StillAlive = "Still_Alive.mp3"
 
 
 def GetSoundPath(soundName):
@@ -456,10 +455,6 @@ def Execute(data):
 
         if data.GetParam(0) == "!th_mrow" and (Parent.HasPermission(data.User, m_CommandPermission,"easter egg") or data.UserName == "th_mrow"):
                 Parent.SendTwitchMessage("This was a triumph. I'm making a note here: HUGE SUCCESS. It's hard to overstate my satisfaction.")
-                if ReadFile(file_HasSound, "string") == "True":
-                    volume = ReadFile(file_Volume, "float")
-                    soundPath = GetSoundPath(sound_StillAlive)
-                    stillAlive = Parent.PlaySound(soundPath, volume)
                 return
 
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
