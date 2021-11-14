@@ -5,6 +5,7 @@ from os import path
 import json
 import ast
 import clr
+import unicodedata
 clr.AddReference("IronPython.SQLite.dll")
 clr.AddReference("IronPython.Modules.dll")
 
@@ -13,7 +14,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.6.1"
+Version = "1.6.7"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -54,7 +55,6 @@ def LastestFile():
 # Write file ("file.txt") with message
 def WriteFile(file, message):
     writeFile = os.path.join(os.path.dirname(__file__), file)
-    Parent.Log("WriteFile", str(writeFile ))
     writeFileWrite = open(writeFile, "w")
     writeFileWrite.write('%s' % str(message))
     writeFileWrite.close()
@@ -63,7 +63,6 @@ def WriteFile(file, message):
 # Read file and return the lecture in type
 def ReadFile(file, type):
     readFile = os.path.join(os.path.dirname(__file__), file)
-    Parent.Log(ScriptName, str(readFile))
     readFileRead = open(readFile, "r")
     if type == "int":
         read = readFileRead.readline()
@@ -214,7 +213,10 @@ def WrotePlayersXP():
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
-        infoList.append(lineJson['DisplayName'])
+        name = lineJson['DisplayName']
+        ret = unicode(name.strip('"'), encoding='utf-8', errors='ignore')
+        Parent.Log(ScriptName, "xp name : " + ret)
+        infoList.append(ret)
         infoList.append(lineJson['TotalXP'])
         WritePlayerXp(infoList)
     return
@@ -227,7 +229,10 @@ def WrotePlayersRank(rank):
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
-        infoList.append(lineJson['DisplayName'])
+        name = lineJson['DisplayName']
+        ret = unicode(name.strip('"'), encoding='utf-8', errors='ignore')
+        Parent.Log(ScriptName, "xp name : " + ret)
+        infoList.append(ret)
         playerRank = lineJson['LeagueTierIds']['UnrankedTierIds'][rank]
         l = playerRank.split("_", 4)
         trueRank = l[4]
@@ -243,7 +248,10 @@ def WrotePlayersSkin(rank):
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
-        infoList.append(lineJson['DisplayName'])
+        name = lineJson['DisplayName']
+        ret = unicode(name.strip('"'), encoding='utf-8', errors='ignore')
+        Parent.Log(ScriptName,  "xp name : " + ret)
+        infoList.append(ret)
         playerRank = lineJson['CosmeticLoadout'][rank]
         l = playerRank.split("_", 3)
         trueRank = l[3]
@@ -259,7 +267,11 @@ def WrotePlayersClassXp(xp):
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
-        infoList.append(lineJson['DisplayName'])
+        name = lineJson['DisplayName']
+        ret = unicode(name.strip('"'), encoding='utf-8', errors='ignore')
+        Parent.Log(ScriptName,  "xp name : " + ret)
+        infoList.append(ret)
+
         playerRank = lineJson[xp]
         infoList.append(playerRank)
         WritePlayerXp(infoList)
@@ -272,7 +284,10 @@ def WrotePlayersClassPlateform(xp):
     for i in range(len(list)-nbPlayers, len(list)):
         infoList = []
         lineJson = ConvertToJson(list[i])
-        infoList.append(lineJson['DisplayName'])
+        name = lineJson['DisplayName']
+        ret = unicode(name.strip('"'), encoding='utf-8', errors='ignore')
+        Parent.Log(ScriptName,  "xp name : " + ret)
+        infoList.append(ret)
         playerRank = lineJson[xp].split(":", 1)
         playerRank = playerRank[0].replace("\\", "")
         infoList.append(playerRank)
@@ -431,7 +446,8 @@ def InitGame():
 
 # Useless for now
 def Init():
-    InitGame()
+    #TODO remove comment
+    #InitGame()
     return
 
 # Main function
@@ -489,6 +505,7 @@ def Execute(data):
             #Check if there is a new log and reset old players if yes
             if data.GetParam(1) == "init" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
                 InitGame()
+                return
 
             if data.GetParam(1) == "update" and Parent.HasPermission(data.User, m_CommandPermission,"Get the amount of player in your lobby"):
                 path = LastestFile()
@@ -519,7 +536,9 @@ def Execute(data):
                 FoundPlayersInfo(path)
                 WrotePlayersXP()
                 list = ReadFile(file_PlayersInfo, "list")
-                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                msg = repr(list).decode('unicode-escape')
+                allNames = "".join(msg.splitlines())
+                Parent.SendTwitchMessage(str(allNames).replace(r"\n", ""))
                 return
 
             if data.GetParam(1) == "solo":
@@ -628,7 +647,13 @@ def Execute(data):
                 FoundPlayersInfo(path)
                 WrotePlayersName()
                 list = ReadFile(file_PlayersName, "list")
-                Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
+                names = []
+                for playerName in list:
+                    ret = unicode(playerName.strip('"'), encoding='utf-8', errors='ignore')
+                    names.append(ret)
+                msg = repr(names).decode('unicode-escape')
+                allNames = "".join(msg.splitlines())
+                Parent.SendTwitchMessage(allNames)
                 return
 
             if data.GetParam(1) == "team":
@@ -674,6 +699,7 @@ def Execute(data):
 
 # Auto-check if we are in a new game
 def Tick():
-    path = LastestFile()
-    IsNewMatch(path)
+    #TODO remove comments
+    #path = LastestFile()
+    #IsNewMatch(path)
     return
