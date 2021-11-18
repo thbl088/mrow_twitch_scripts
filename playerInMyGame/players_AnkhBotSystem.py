@@ -429,7 +429,7 @@ def turnOnMatchAlert(state):
         WriteFile(file_HasSound, "False")
     return
 
-def changeVolume(volume)
+def changeVolume(volume):
     if volume < 2:
         WriteFile(file_Volume, volume)
         soundPath = GetSoundPath(sound_miaou)
