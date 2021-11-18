@@ -25,18 +25,32 @@ If the bot didn't wrote `"New game"` at the drop (after the selecting a spawn sc
 `!players fullReset` (streamer) to reset all. <br />
 
 ## Everyone
+### !players commands
 `!players` for peoples to see the amount of player in the match.<br />
 `!players name` to see the name of everyone in your lobby.<br />
 `!players xp` to see the name and xp of everyone in your lobby.<br />
+`!players class` to see the name and class xp of everyone in your lobby.<br />
 `!players solo` to see the name and solo rank of everyone in your lobby.<br />
 `!players duo` to see the name and duo rank of everyone in your lobby.<br />
 `!players squad` to see the name and squad rank of everyone in your lobby.<br />
 `!players team` to print all the name of the streamer team.<br />
+#### Cosmetic part
+`!players skin` to print all the skn of the game.<br />
+`!players artifact` to print all the artifact of the game.<br />
+`!players cloudburst` to print all the cloudburst of the game.<br />
+`!players afterglow` to print all the afterglow of the game.<br />
+`!players badge` to print all the badge of the game.<br />
+`!players title` to print all the title of the game.<br />
+`!players card` to print all the card of the game.<br />
+`!players platform` to print all the platform of the game.<br />
+`!players triumph` to print all the triumph of the game.<br />
+### !skin commands
+`!skin + name of a skin` to got a link showing on the wiki what the skin looks like (use a !players skin to see the name of a skin)<br />
 
 # How to use the `!sound` command (Modo or above) <br />
 `!sound off` to turn off all the sound of the script
 `!sound on` to turn on all the sound of the script
-`!sound (value < 3)` to change the volume of all the sound (Tip : try with low value first (ex : 0.8))
+`!sound (value < 3)` to change the volume of all the sound (Tip : try with low value first (ex : 0.3))
 
 # How to use the `!play` command<br />
 `!play hunt` to get the name of a target in your lobby (after the !players newGame)<br />

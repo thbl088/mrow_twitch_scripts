@@ -14,7 +14,7 @@ ScriptName = "!players"
 Website = "https://www.twitch.tv/th_mrow"
 Description = "Gives you the amount of players in your spellbreak game."
 Creator = "th_mrow"
-Version = "1.6.7"
+Version = "1.7.0"
 
 # Parameters
 m_CommandPermission = "moderator"
@@ -23,6 +23,10 @@ m_FileType = '\*log'
 m_LookFor = "blob data for"
 m_LookForStreamerTeam = "PublicBlobData"
 m_LookForNewGame = "InteractiveManager /Game/Maps/Longshot/Alpha/Alpha_Resculpt OnMatchStarted"
+
+# All the wiki url
+url_outfit = "https://spellbreak.fandom.com/wiki/"
+
 
 # All the file use to save data
 file_LatestLogPath = "LatestLogPath.txt"
@@ -425,10 +429,13 @@ def turnOnMatchAlert(state):
         WriteFile(file_HasSound, "False")
     return
 
-def changeVolume(volume):
-    WriteFile(file_Volume, volume)
-    soundPath = GetSoundPath(sound_miaou)
-    miaou = Parent.PlaySound(soundPath, float(volume))
+def changeVolume(volume)
+    if volume < 2:
+        WriteFile(file_Volume, volume)
+        soundPath = GetSoundPath(sound_miaou)
+        miaou = Parent.PlaySound(soundPath, float(volume))
+    else:
+        Parent.SendTwitchMessage("Sound too loud")
     return
 
 def InitGame():
@@ -453,6 +460,7 @@ def Init():
 # Main function
 def Execute(data):
     if data.IsChatMessage():
+        # ----------------Sounds commands--------------------------------------
         if data.GetParam(0) == "!sound" and Parent.HasPermission(data.User, m_CommandPermission,"Change sound"):
             if data.GetParamCount() == 1:
                 Parent.SendTwitchMessage("!sound + number below 1, for example !sound 0.1")
@@ -468,11 +476,12 @@ def Execute(data):
                 if isinstance(newVolume, float) and newVolume < 5.0:
                     changeVolume(data.GetParam(1))
             return
-
+        # ----------------misc commands--------------------------------------
         if data.GetParam(0) == "!th_mrow" and (Parent.HasPermission(data.User, m_CommandPermission,"easter egg") or data.UserName == "th_mrow"):
                 Parent.SendTwitchMessage("This was a triumph. I'm making a note here: HUGE SUCCESS. It's hard to overstate my satisfaction.")
                 return
 
+        # ----------------Play commands--------------------------------------
         if data.GetParam(0) == "!play" or data.GetParam(0) == "!cunt":
             if data.GetParamCount() == 1 and data.GetParam(0) == "!cunt":
                 Parent.SendTwitchMessage(data.UserName + " is a cunt!")
@@ -495,13 +504,23 @@ def Execute(data):
                 Parent.SendTwitchMessage(message)
                 return
 
+        # ----------------Skin commands-----------------------------------------
+        if data.GetParam(0) == "!skin":
+            if data.GetParamCount() == 2:
+                skin = url_outfit + data.GetParam(1)
+                Parent.SendTwitchMessage(skin)
+            else:
+                Parent.SendTwitchMessage("The command is !skin + name of the skin got with !players skin")
+            return
+
+        # ----------------Players commands--------------------------------------
         if data.GetParam(0) == "!players":
             if (data.GetParamCount() == 1):
                 players = ReadFile(file_Players, "int")
                 answer = "There is " + str(players) + " players, including the streamer team."
                 Parent.SendTwitchMessage(answer)
                 return
-
+            # ----------------streamer commands--------------------------------------
             #Check if there is a new log and reset old players if yes
             if data.GetParam(1) == "init" and Parent.HasPermission(data.User, m_CommandPermission,"Get the most recent log file and reset if new one"):
                 InitGame()
@@ -531,6 +550,7 @@ def Execute(data):
                 Parent.SendTwitchMessage("reset done")
                 return
 
+            # ----------------Viewer commands--------------------------------------
             if data.GetParam(1) == "xp":
                 path = LastestFile()
                 FoundPlayersInfo(path)
@@ -661,6 +681,16 @@ def Execute(data):
                 Parent.SendTwitchMessage(str(list).replace(r"\n", ""))
                 return
 
+            # ----------------Players misc commands--------------------------------------
+            if data.GetParam(1) == "discord":
+                Parent.SendTwitchMessage("There is the invitation to join the discord of mrow's script : https://discord.gg/NCHEraagAB")
+                return
+
+            if data.GetParam(1) == "how":
+                Parent.SendTwitchMessage("That script is only available on pc. I'm reading the log file to see all the players who logs in the lobby.")
+                return
+
+            # ----------------Admin commands--------------------------------------
             if data.GetParam(1) == "stat" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
                 path = LastestFile()
                 GetStreamerTeamData(path)
@@ -670,14 +700,6 @@ def Execute(data):
             if data.GetParam(1) == "resetstat" and Parent.HasPermission(data.User, "broadcaster", "Reset players and old players"):
                 WriteFile(file_StreamerStats, "")
                 Parent.SendTwitchMessage("reset stat done")
-                return
-
-            if data.GetParam(1) == "discord":
-                Parent.SendTwitchMessage("There is the invitation to join the discord of mrow's script : https://discord.gg/NCHEraagAB")
-                return
-
-            if data.GetParam(1) == "how":
-                Parent.SendTwitchMessage("That script is only available on pc. I'm reading the log file to see all the players who logs in the lobby.")
                 return
 
             if data.GetParam(1) == "fullReset" and Parent.HasPermission(data.User, "broadcaster","Reset players and old players"):
