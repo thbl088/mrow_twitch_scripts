@@ -453,8 +453,7 @@ def InitGame():
 
 # Useless for now
 def Init():
-    #TODO remove comment
-    #InitGame()
+    InitGame()
     return
 
 # Main function
@@ -721,7 +720,6 @@ def Execute(data):
 
 # Auto-check if we are in a new game
 def Tick():
-    #TODO remove comments
-    #path = LastestFile()
-    #IsNewMatch(path)
+    path = LastestFile()
+    IsNewMatch(path)
     return
