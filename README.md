@@ -28,12 +28,19 @@ If the bot didn't wrote `"New game"` at the drop (after the selecting a spawn sc
 ### !players commands
 `!players` for peoples to see the amount of player in the match.<br />
 `!players name` to see the name of everyone in your lobby.<br />
+`!players oldNames {name of a player you encounter in the session}` to see all the name he used. (when you played against him)<br />
 `!players xp` to see the name and xp of everyone in your lobby.<br />
-`!players class` to see the name and class xp of everyone in your lobby.<br />
+`!players classXp` to see the name and class xp of everyone in your lobby.<br />
 `!players solo` to see the name and solo rank of everyone in your lobby.<br />
 `!players duo` to see the name and duo rank of everyone in your lobby.<br />
 `!players squad` to see the name and squad rank of everyone in your lobby.<br />
 `!players team` to print all the name of the streamer team.<br />
+<br/>
+`!player stat` to get the % of the amount of class encounter.
+<br/>
+`!players how` to explain how the bot works.<br />
+`!players discord` the link to my discord.<br />
+`!version` the version of the bot.<br />
 #### Cosmetic part
 `!players skin` to print all the skn of the game.<br />
 `!players artifact` to print all the artifact of the game.<br />
@@ -47,7 +54,7 @@ If the bot didn't wrote `"New game"` at the drop (after the selecting a spawn sc
 ### !skin commands
 `!skin + name of a skin` to got a link showing on the wiki what the skin looks like (use a !players skin to see the name of a skin)<br />
 
-# How to use the `!sound` command (Modo or above) <br />
+# How to use the `!sound` command (Streamer) <br />
 `!sound off` to turn off all the sound of the script
 `!sound on` to turn on all the sound of the script
 `!sound (value < 3)` to change the volume of all the sound (Tip : try with low value first (ex : 0.3))
@@ -62,7 +69,7 @@ If you have ideas for other games, dm on discord or on twitch.<br />
 Do `win+r` -> `%appdata%/Streamlabs/Streamlabs Chatbot/Services/Scripts/playerInMyGame/StreamerStats.txt`
 
 # Credits <br />
-Made by th_mrow (follow me 😊 https://www.twitch.tv/th_mrow)<br />
-Do not modified and share without asking me<br />
+Made by th_mrow (follow me 😊 https://www.twitch.tv/th_mrow ) <br />
+Do not modified and share without asking me pls.<br />
 Do not download scripts of people you don't know and trust, that's easy to do a malware with that.<br />
-If you have any issue just contact me (I may not respond that depends of my mood)<br />
+If you have any issue just contact me. (I may not respond that depends of my mood)<br />
